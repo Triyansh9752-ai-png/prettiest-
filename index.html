@@ -1,91 +1,193 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>You're Perfect</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
     <style>
       body {
         overflow: hidden;
+        background: linear-gradient(45deg, #ffb6c1, #ffccd5, #e6e6fa, #ffc1cc);
+        background-size: 400%;
+        animation: gradient 12s ease infinite;
+      }
+      @keyframes gradient {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+      body::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 1px, transparent 1px);
+        background-size: 12px 12px;
+        animation: twinkle 4s infinite;
+        z-index: -1;
+      }
+      @keyframes twinkle {
+        0%, 100% { opacity: 0.5; }
+        50% { opacity: 0.9; }
       }
       .falling {
         position: absolute;
         top: -10%;
-        animation: fall linear infinite;
-        opacity: 0.8;
-        font-size: 1.5rem;
+        animation: fall 6s linear infinite, sway 2s ease-in-out infinite alternate;
+        pointer-events: none;
       }
       @keyframes fall {
-        0% {
-          transform: translateY(0) rotate(0deg);
-        }
-        100% {
-          transform: translateY(120vh) rotate(360deg);
-        }
+        0% { transform: translateY(0) rotate(0deg); }
+        100% { transform: translateY(120vh) rotate(360deg); }
+      }
+      @keyframes sway {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(20px); }
+      }
+      h1, h2, p {
+        font-family: 'Dancing Script', cursive;
+      }
+      h1 {
+        font-size: 3.5rem;
+        color: #c71585;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+      }
+      h2 {
+        font-size: 2.5rem;
+        color: #c71585;
+      }
+      p {
+        font-size: 1.8rem;
+        color: #4b0082;
+      }
+      .animate-fade-in {
+        animation: fadeIn 1s ease-in forwards;
+      }
+      @keyframes fadeIn {
+        0% { opacity: 0; transform: translateY(20px); }
+        100% { opacity: 1; transform: translateY(0); }
+      }
+      .animate-reveal {
+        animation: reveal 1s ease-in-out;
+      }
+      @keyframes reveal {
+        0% { opacity: 0; transform: scale(0.8); }
+        100% { opacity: 1; transform: scale(1); }
+      }
+      .glow {
+        box-shadow: 0 0 20px rgba(255, 105, 180, 0.7);
+      }
+      .heart-trail {
+        position: absolute;
+        pointer-events: none;
+        animation: fadeOut 2s ease-in-out;
+      }
+      @keyframes fadeOut {
+        0% { opacity: 0.8; transform: scale(1); }
+        100% { opacity: 0; transform: scale(1.5); }
       }
     </style>
   </head>
-  <body class="bg-pink-50 flex flex-col items-center justify-center min-h-screen font-sans text-center p-4 relative overflow-hidden">
-    <!-- Background Animation -->
-    <div id="falling-items" class="absolute inset-0 z-0 pointer-events-none"></div><!-- Compliments Section -->
-<div id="compliment-section" class="space-y-4 z-10">
-  <h1 class="text-3xl font-bold text-pink-700">You're just perfect.</h1>
-  <p class="text-xl text-gray-700">You're kind.</p>
-  <p class="text-xl text-gray-700">You're inspiring.</p>
-  <p class="text-xl text-gray-700">You light up the room.</p>
+  <body class="flex flex-col items-center justify-center min-h-screen font-sans text-center p-4 relative overflow-hidden">
+    <div id="falling-items" class="absolute inset-0 z-0 pointer-events-none"></div>
+    <div id="compliment-section" class="space-y-4 z-10">
+      <h1 class="opacity-0 animate-fade-in" style="animation-delay: 0s;">You're just perfect.</h1>
+      <p class="opacity-0 animate-fade-in" style="animation-delay: 1s;">You're kind.</p>
+      <p class="opacity-0 animate-fade-in" style="animation-delay: 2s;">You're inspiring.</p>
+      <p class="opacity-0 animate-fade-in" style="animation-delay: 3s;">You light up the room.</p>
+      <button id="reveal-btn" class="mt-8 bg-pink-500 hover:bg-pink-600 text-white text-2xl px-6 py-3 rounded-full shadow-lg animate-bounce">
+        Tap here <span class="ml-2">❤️</span>
+      </button>
+    </div>
+    <div id="certificate-section" class="hidden mt-10 z-10 animate-reveal">
+      <div class="bg-white p-8 rounded-xl shadow-xl border border-gray-300 max-w-lg mx-auto glow">
+        <h2 class="text-2xl font-bold text-pink-700">My Love,</h2>
+        <p id="love-letter" class="text-lg text-gray-700 mt-4"></p>
+      </div>
+    </div>
+    <div id="final-message" class="hidden mt-10 z-10 animate-reveal">
+      <h2 class="text-3xl font-bold text-pink-700">Forever Yours</h2>
+      <p class="text-xl text-gray-700">I can't wait to make more memories with you.</p>
+    </div>
+    <script>
+      const btn = document.getElementById("reveal-btn");
+      const compliments = document.getElementById("compliment-section");
+      const certificate = document.getElementById("certificate-section");
+      const finalMessage = document.getElementById("final-message");
+      const fallingItems = document.getElementById("falling-items");
+      let stage = 0;
 
-  <!-- Heart Button -->
-  <button
-    id="reveal-btn"
-    class="mt-8 bg-pink-500 hover:bg-pink-600 text-white text-2xl px-6 py-3 rounded-full shadow-lg animate-bounce"
-  >
-    Tap here <span class="ml-2">❤️</span>
-  </button>
-</div>
+      // Progressive Reveal
+      btn.addEventListener("click", () => {
+        confetti({
+          particleCount: 200,
+          spread: 90,
+          origin: { y: 0.6 },
+          colors: ['#ff69b4', '#ff1493', '#c71585'],
+          shapes: ['circle', 'square'], // Heart shapes require custom confetti support
+        });
+        if (stage === 0) {
+          compliments.classList.add("hidden");
+          certificate.classList.remove("hidden");
+          new Typed('#love-letter', {
+            strings: ["From the moment I saw you, my heart knew it had found its home. Your smile lights up my world, and every moment with you feels like a dream. Forever yours..."],
+            typeSpeed: 50,
+            showCursor: false,
+          });
+          btn.textContent = "See More ❤️";
+          stage++;
+        } else if (stage === 1) {
+          certificate.classList.add("hidden");
+          finalMessage.classList.remove("hidden");
+          btn.textContent = "Start Over ❤️";
+          stage++;
+        } else {
+          finalMessage.classList.add("hidden");
+          compliments.classList.remove("hidden");
+          btn.textContent = "Tap here ❤️";
+          stage = 0;
+        }
+      });
 
-<!-- Certificate Section (hidden by default) -->
-<div id="certificate-section" class="hidden mt-10 z-10">
-  <img
-    src="/mnt/data/file-S7ryGnoqbju5sS1xCR4pHS"
-    alt="Prettiest Girl Award"
-    class="max-w-full rounded-xl shadow-xl border border-gray-300"
-  />
-</div>
+      // Falling Items
+      const icons = ["❤️", "🌹", "✨", "💕", "🌟"];
+      function createFallingItem() {
+        const item = document.createElement("div");
+        item.className = "falling";
+        item.style.left = Math.random() * 100 + "%";
+        item.style.animationDuration = (4 + Math.random() * 6) + "s";
+        item.style.fontSize = (1 + Math.random() * 1.5) + "rem";
+        item.style.opacity = 0.5 + Math.random() * 0.4;
+        item.textContent = icons[Math.floor(Math.random() * icons.length)];
+        fallingItems.appendChild(item);
+        setTimeout(() => {
+          fallingItems.removeChild(item);
+        }, 10000);
+      }
+      setInterval(createFallingItem, 200);
 
-<script>
-  const btn = document.getElementById("reveal-btn");
-  const certificate = document.getElementById("certificate-section");
-  const compliments = document.getElementById("compliment-section");
-  const fallingItems = document.getElementById("falling-items");
+      // Interactive Heart Trail
+      document.addEventListener("click", (e) => {
+        const heart = document.createElement("div");
+        heart.className = "heart-trail";
+        heart.textContent = "❤️";
+        heart.style.left = e.clientX + "px";
+        heart.style.top = e.clientY + "px";
+        heart.style.fontSize = "1.5rem";
+        document.body.appendChild(heart);
+        setTimeout(() => heart.remove(), 2000);
+      });
 
-  btn.addEventListener("click", () => {
-    confetti({
-      particleCount: 150,
-      spread: 70,
-      origin: { y: 0.6 },
-    });
-    compliments.classList.add("hidden");
-    certificate.classList.remove("hidden");
-  });
-
-  const icons = ["❤️", "🍁", "🍂", "🦋"];
-
-  function createFallingItem() {
-    const item = document.createElement("div");
-    item.className = "falling";
-    item.style.left = Math.random() * 100 + "%";
-    item.style.animationDuration = (4 + Math.random() * 6) + "s";
-    item.textContent = icons[Math.floor(Math.random() * icons.length)];
-    fallingItems.appendChild(item);
-
-    setTimeout(() => {
-      fallingItems.removeChild(item);
-    }, 10000);
-  }
-
-  setInterval(createFallingItem, 300);
-</script>
-
+      // Personalization (optional)
+      const urlParams = new URLSearchParams(window.location.search);
+      const partnerName = urlParams.get('name') || 'My Love';
+      document.querySelector('h1').textContent = `${partnerName}, you're just perfect.`;
+    </script>
   </body>
 </html>
