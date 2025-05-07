@@ -6,11 +6,14 @@
     <title>You're Perfect</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12"></script>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
     <style>
+      html {
+        scroll-behavior: smooth;
+      }
       body {
-        overflow: hidden;
+        overflow-x: hidden;
+        overflow-y: auto;
         background: linear-gradient(45deg, #ffb6c1, #ffccd5, #e6e6fa, #ffc1cc);
         background-size: 400%;
         animation: gradient 12s ease infinite;
@@ -41,6 +44,7 @@
         top: -10%;
         animation: fall 6s linear infinite, sway 2s ease-in-out infinite alternate;
         pointer-events: none;
+        will-change: transform, opacity;
       }
       @keyframes fall {
         0% { transform: translateY(0) rotate(0deg); }
@@ -68,6 +72,7 @@
       }
       .animate-fade-in {
         animation: fadeIn 1s ease-in forwards;
+        will-change: opacity, transform;
       }
       @keyframes fadeIn {
         0% { opacity: 0; transform: translateY(20px); }
@@ -75,6 +80,7 @@
       }
       .animate-reveal {
         animation: reveal 1s ease-in-out;
+        will-change: opacity, transform;
       }
       @keyframes reveal {
         0% { opacity: 0; transform: scale(0.8); }
@@ -82,11 +88,27 @@
       }
       .glow {
         box-shadow: 0 0 20px rgba(255, 105, 180, 0.7);
+        transition: box-shadow 0.3s ease;
+      }
+      .section-hover {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+      .section-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0 30px rgba(255, 105, 180, 0.9);
+      }
+      .button-hover {
+        transition: transform 0.2s ease, background-color 0.3s ease;
+      }
+      .button-hover:hover {
+        transform: scale(1.1);
+        background-color: #ff4d94 !important;
       }
       .heart-trail {
         position: absolute;
         pointer-events: none;
         animation: fadeOut 2s ease-in-out;
+        will-change: opacity, transform;
       }
       @keyframes fadeOut {
         0% { opacity: 0.8; transform: scale(1); }
@@ -94,34 +116,61 @@
       }
     </style>
   </head>
-  <body class="flex flex-col items-center justify-center min-h-screen font-sans text-center p-4 relative overflow-hidden">
+  <body class="flex flex-col items-center justify-center min-h-screen font-sans text-center p-4 relative">
     <div id="falling-items" class="absolute inset-0 z-0 pointer-events-none"></div>
-    <div id="compliment-section" class="space-y-4 z-10">
+    <!-- Compliments Section -->
+    <div id="compliment-section" class="space-y-4 z-10 section-hover">
       <h1 class="opacity-0 animate-fade-in" style="animation-delay: 0s;">You're just perfect.</h1>
       <p class="opacity-0 animate-fade-in" style="animation-delay: 1s;">You're kind.</p>
       <p class="opacity-0 animate-fade-in" style="animation-delay: 2s;">You're inspiring.</p>
       <p class="opacity-0 animate-fade-in" style="animation-delay: 3s;">You light up the room.</p>
-      <button id="reveal-btn" class="mt-8 bg-pink-500 hover:bg-pink-600 text-white text-2xl px-6 py-3 rounded-full shadow-lg animate-bounce">
+      <button id="reveal-btn" class="mt-8 bg-pink-500 text-white text-2xl px-6 py-3 rounded-full shadow-lg animate-bounce button-hover">
         Tap here <span class="ml-2">❤️</span>
       </button>
     </div>
-    <div id="certificate-section" class="hidden mt-10 z-10 animate-reveal">
+    <!-- Love Letter Section -->
+    <div id="love-letter-section" class="hidden mt-10 z-10 animate-reveal section-hover">
       <div class="bg-white p-8 rounded-xl shadow-xl border border-gray-300 max-w-lg mx-auto glow">
         <h2 class="text-2xl font-bold text-pink-700">My Love,</h2>
-        <p id="love-letter" class="text-lg text-gray-700 mt-4"></p>
+        <p class="text-lg text-gray-700 mt-4">
+          From the moment I saw you, my heart knew it had found its home. Your smile lights up my world, and every moment with you feels like a dream. Forever yours...
+        </p>
+        <button id="love-letter-btn" class="mt-6 bg-pink-500 text-white text-xl px-4 py-2 rounded-full shadow-lg button-hover">
+          Next <span class="ml-2">❤️</span>
+        </button>
       </div>
     </div>
-    <div id="final-message" class="hidden mt-10 z-10 animate-reveal">
+    <!-- Certificate Section -->
+    <div id="certificate-section" class="hidden mt-10 z-10 animate-reveal section-hover">
+      <img
+        src="certificate.jpg"
+        alt="Prettiest Girl Award"
+        class="max-w-full rounded-xl shadow-xl border border-gray-300 glow"
+      />
+      <button id="certificate-btn" class="mt-6 bg-pink-500 text-white text-xl px-4 py-2 rounded-full shadow-lg button-hover">
+        See More <span class="ml-2">❤️</span>
+      </button>
+    </div>
+    <!-- Final Message Section -->
+    <div id="final-message" class="hidden mt-10 z-10 animate-reveal section-hover">
       <h2 class="text-3xl font-bold text-pink-700">Forever Yours</h2>
       <p class="text-xl text-gray-700">I can't wait to make more memories with you.</p>
     </div>
     <script>
       const btn = document.getElementById("reveal-btn");
+      const loveLetterBtn = document.getElementById("love-letter-btn");
+      const certificateBtn = document.getElementById("certificate-btn");
       const compliments = document.getElementById("compliment-section");
+      const loveLetterSection = document.getElementById("love-letter-section");
       const certificate = document.getElementById("certificate-section");
       const finalMessage = document.getElementById("final-message");
       const fallingItems = document.getElementById("falling-items");
       let stage = 0;
+
+      // Function to scroll to a section smoothly
+      function scrollToSection(section) {
+        section.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
 
       // Progressive Reveal
       btn.addEventListener("click", () => {
@@ -130,34 +179,62 @@
           spread: 90,
           origin: { y: 0.6 },
           colors: ['#ff69b4', '#ff1493', '#c71585'],
-          shapes: ['circle', 'square'], // Heart shapes require custom confetti support
+          shapes: ['circle', 'square'],
         });
         if (stage === 0) {
           compliments.classList.add("hidden");
-          certificate.classList.remove("hidden");
-          new Typed('#love-letter', {
-            strings: ["From the moment I saw you, my heart knew it had found its home. Your smile lights up my world, and every moment with you feels like a dream. Forever yours..."],
-            typeSpeed: 50,
-            showCursor: false,
-          });
-          btn.textContent = "See More ❤️";
+          loveLetterSection.classList.remove("hidden");
+          scrollToSection(loveLetterSection);
           stage++;
-        } else if (stage === 1) {
-          certificate.classList.add("hidden");
-          finalMessage.classList.remove("hidden");
-          btn.textContent = "Start Over ❤️";
-          stage++;
-        } else {
+        }
+      });
+
+      loveLetterBtn.addEventListener("click", () => {
+        confetti({
+          particleCount: 200,
+          spread: 90,
+          origin: { y: 0.6 },
+          colors: ['#ff69b4', '#ff1493', '#c71585'],
+          shapes: ['circle', 'square'],
+        });
+        loveLetterSection.classList.add("hidden");
+        certificate.classList.remove("hidden");
+        scrollToSection(certificate);
+        stage++;
+      });
+
+      certificateBtn.addEventListener("click", () => {
+        confetti({
+          particleCount: 200,
+          spread: 90,
+          origin: { y: 0.6 },
+          colors: ['#ff69b4', '#ff1493', '#c71585'],
+          shapes: ['circle', 'square'],
+        });
+        certificate.classList.add("hidden");
+        finalMessage.classList.remove("hidden");
+        scrollToSection(finalMessage);
+        btn.textContent = "Start Over ❤️";
+        btn.classList.remove("hidden");
+        stage++;
+      });
+
+      btn.addEventListener("click", () => {
+        if (stage === 3) {
           finalMessage.classList.add("hidden");
           compliments.classList.remove("hidden");
+          scrollToSection(compliments);
           btn.textContent = "Tap here ❤️";
           stage = 0;
         }
       });
 
-      // Falling Items
+      // Falling Items (Optimized)
       const icons = ["❤️", "🌹", "✨", "💕", "🌟"];
+      let fallingItemCount = 0;
+      const maxFallingItems = 50; // Limit to prevent lag
       function createFallingItem() {
+        if (fallingItemCount >= maxFallingItems) return;
         const item = document.createElement("div");
         item.className = "falling";
         item.style.left = Math.random() * 100 + "%";
@@ -166,11 +243,13 @@
         item.style.opacity = 0.5 + Math.random() * 0.4;
         item.textContent = icons[Math.floor(Math.random() * icons.length)];
         fallingItems.appendChild(item);
+        fallingItemCount++;
         setTimeout(() => {
           fallingItems.removeChild(item);
+          fallingItemCount--;
         }, 10000);
       }
-      setInterval(createFallingItem, 200);
+      setInterval(createFallingItem, 300);
 
       // Interactive Heart Trail
       document.addEventListener("click", (e) => {
@@ -184,7 +263,7 @@
         setTimeout(() => heart.remove(), 2000);
       });
 
-      // Personalization (optional)
+      // Personalization
       const urlParams = new URLSearchParams(window.location.search);
       const partnerName = urlParams.get('name') || 'My Love';
       document.querySelector('h1').textContent = `${partnerName}, you're just perfect.`;
